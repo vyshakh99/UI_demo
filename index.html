@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Window in tab and Tree UI demo for PFMG</title>
+    <meta name="description" content="Window in tab and Tree UI demo for PFMG">
+
+    <!-- CDN Libraries -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/themes/default/style.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/winbox@0.2.82/dist/css/winbox.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+
+    <style>
+        /* ===== CSS Reset & Variables ===== */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --bg-primary: #f8f9fb;
+            --bg-sidebar: #ffffff;
+            --bg-panel: #f0f2f5;
+            --bg-card: #ffffff;
+            --bg-input: #f4f6f8;
+            --border-color: #e2e6ec;
+            --border-focus: #6366f1;
+            --text-primary: #1a1d23;
+            --text-secondary: #5f6672;
+            --text-muted: #8b919d;
+            --accent: #6366f1;
+            --accent-light: #e0e1ff;
+            --accent-hover: #4f46e5;
+            --green: #10b981;
+            --orange: #f59e0b;
+            --red: #ef4444;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --transition: 0.2s ease;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ===== App Shell ===== */
+        .app-shell {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .app-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 0 24px;
+            height: 56px;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: #fff;
+            flex-shrink: 0;
+            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.3);
+            z-index: 10;
+        }
+
+        .app-header i {
+            font-size: 22px;
+            opacity: 0.9;
+        }
+
+        .app-header h1 {
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .app-header .header-badge {
+            margin-left: auto;
+            font-size: 11px;
+            font-weight: 500;
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.18);
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        .app-body {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ===== Sidebar ===== */
+        .sidebar {
+            width: 300px;
+            min-width: 300px;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 16px 20px 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h2 {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-muted);
+        }
+
+        .sidebar-search {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-search input {
+            width: 100%;
+            padding: 9px 12px 9px 36px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-family);
+            font-size: 13px;
+            background: var(--bg-input) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238b919d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") 12px center no-repeat;
+            transition: border-color var(--transition), box-shadow var(--transition);
+            outline: none;
+        }
+
+        .sidebar-search input:focus {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+        }
+
+        .sidebar-tree {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 10px;
+        }
+
+        /* jsTree Overrides */
+        .jstree-default .jstree-node,
+        .jstree-default .jstree-icon {
+            background-image: none !important;
+        }
+
+        .jstree-default .jstree-icon.jstree-themeicon {
+            font-family: 'Font Awesome 6 Free', 'Font Awesome 6 Free Solid';
+            font-weight: 900;
+            font-style: normal;
+            font-size: 14px;
+            width: 22px;
+            text-align: center;
+        }
+
+        .jstree-default .jstree-anchor {
+            font-family: var(--font-family);
+            font-size: 13px;
+            font-weight: 450;
+            color: var(--text-primary);
+            padding: 4px 6px;
+            border-radius: var(--radius-sm);
+            transition: background var(--transition);
+            line-height: 22px;
+        }
+
+        .jstree-default .jstree-anchor:hover {
+            background: var(--accent-light) !important;
+            color: var(--accent) !important;
+        }
+
+        .jstree-default .jstree-clicked {
+            background: var(--accent-light) !important;
+            color: var(--accent) !important;
+            box-shadow: none !important;
+        }
+
+        .jstree-default .jstree-wholerow-clicked {
+            background: var(--accent-light) !important;
+        }
+
+        .jstree-default .jstree-wholerow-hovered {
+            background: rgba(99, 102, 241, 0.05) !important;
+        }
+
+        .icon-university {
+            color: #6366f1;
+        }
+
+        .icon-college {
+            color: #8b5cf6;
+        }
+
+        .icon-department {
+            color: #0ea5e9;
+        }
+
+        .icon-class {
+            color: #10b981;
+        }
+
+        .icon-student {
+            color: #f59e0b;
+        }
+
+        /* ===== Right Panel ===== */
+        #panel2 {
+            flex: 1;
+            position: relative;
+            background: var(--bg-panel);
+            overflow: hidden;
+        }
+
+        .panel2-empty {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            gap: 16px;
+        }
+
+        .panel2-empty-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e0e1ff, #ddd6fe);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: var(--accent);
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.15);
+            }
+
+            50% {
+                box-shadow: 0 0 0 20px rgba(99, 102, 241, 0);
+            }
+        }
+
+        .panel2-empty h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .panel2-empty p {
+            font-size: 13px;
+            color: var(--text-muted);
+            max-width: 260px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        /* ===== WinBox Overrides ===== */
+        .winbox {
+            border-radius: var(--radius-md) !important;
+            box-shadow: var(--shadow-lg) !important;
+            border: 1px solid var(--border-color) !important;
+            overflow: hidden;
+        }
+
+        .winbox .wb-header {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+        }
+
+        .winbox .wb-title {
+            font-family: var(--font-family) !important;
+            font-size: 13px !important;
+            font-weight: 600 !important;
+        }
+
+        .winbox .wb-body {
+            background: var(--bg-card);
+        }
+
+        .winbox .wb-control .wb-close,
+        .winbox .wb-control .wb-max,
+        .winbox .wb-control .wb-min,
+        .winbox .wb-control .wb-full {
+            opacity: 0.8;
+        }
+
+        .winbox .wb-control .wb-close:hover {
+            background: var(--red) !important;
+            opacity: 1;
+        }
+
+        .winbox .wb-control .wb-max:hover,
+        .winbox .wb-control .wb-min:hover,
+        .winbox .wb-control .wb-full:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.2) !important;
+        }
+
+        /* ===== Form Styles Inside WinBox ===== */
+        .form-container {
+            padding: 20px 24px;
+            font-family: var(--font-family);
+        }
+
+        .form-container .form-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--accent-light);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-container .form-title i {
+            color: var(--accent);
+        }
+
+        .form-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 14px;
+            gap: 12px;
+        }
+
+        .form-row label {
+            width: 130px;
+            min-width: 130px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-row input,
+        .form-row select {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-family);
+            font-size: 13px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .form-row input:focus,
+        .form-row select:focus {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+            background: #fff;
+        }
+
+        .form-columns {
+            display: flex;
+            gap: 24px;
+        }
+
+        .form-col {
+            flex: 1;
+        }
+
+        .form-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin: 20px 0 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border-color);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== Data Grid / Time Table ===== */
+        .data-grid-wrapper {
+            margin-top: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+
+        .data-grid {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .data-grid thead th {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: #fff;
+            padding: 10px 14px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .data-grid tbody td {
+            padding: 9px 14px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .data-grid tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-grid tbody tr:hover {
+            background: rgba(99, 102, 241, 0.04);
+        }
+
+        .data-grid tbody tr:nth-child(even) {
+            background: var(--bg-input);
+        }
+
+        .data-grid tbody tr:nth-child(even):hover {
+            background: rgba(99, 102, 241, 0.06);
+        }
+
+        /* Status badges in data grids */
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-green {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .badge-blue {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .badge-orange {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        /* ===== Context Menu (jsTree built-in) ===== */
+        .jstree-contextmenu .vakata-context {
+            font-family: var(--font-family) !important;
+            border-radius: var(--radius-sm) !important;
+            box-shadow: var(--shadow-lg) !important;
+            border: 1px solid var(--border-color) !important;
+            padding: 4px !important;
+            min-width: 160px !important;
+        }
+
+        .vakata-context li>a {
+            font-size: 13px !important;
+            padding: 6px 14px !important;
+            border-radius: 4px !important;
+        }
+
+        .vakata-context li>a:hover {
+            background: var(--accent-light) !important;
+            color: var(--accent) !important;
+            box-shadow: none !important;
+        }
+
+        .vakata-context .vakata-context-separator a {
+            margin: 2px 0 !important;
+        }
+
+        /* ===== Sidebar scrollbar ===== */
+        .sidebar-tree::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-tree::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar-tree::-webkit-scrollbar-thumb {
+            background: #d1d5dc;
+            border-radius: 3px;
+        }
+
+        .sidebar-tree::-webkit-scrollbar-thumb:hover {
+            background: #b0b5c0;
+        }
+
+        /* ===== Drag feedback ===== */
+        .jstree-default .jstree-drag-marker {
+            font-family: var(--font-family);
+        }
+
+        /* Tooltip for invalid drop */
+        .drop-invalid-toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--red);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: var(--shadow-md);
+            z-index: 99999;
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .drop-invalid-toast.show {
+            opacity: 1;
+        }
+
+        /* ===== Sidebar Footer & Button ===== */
+        .sidebar-footer {
+            padding: 12px 16px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .sidebar-btn {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border: none;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: #fff;
+            font-family: var(--font-family);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform var(--transition), box-shadow var(--transition);
+        }
+
+        .sidebar-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+        }
+
+        .sidebar-btn:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="app-shell">
+        <!-- Header -->
+        <header class="app-header">
+            <i class="fas fa-building-columns"></i>
+            <h1>Windows in tab and Tree UI demo for PFMG</h1>
+            <span class="header-badge"><i class="fas fa-circle"
+                    style="font-size:6px;color:#4ade80;margin-right:6px;vertical-align:middle;"></i>UI Demo</span>
+        </header>
+
+        <!-- Body -->
+        <div class="app-body">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h2>Explorer</h2>
+                </div>
+                <div class="sidebar-search">
+                    <input type="text" id="tree-search" placeholder="Search nodes...">
+                </div>
+                <div class="sidebar-tree">
+                    <div id="jstree"></div>
+                </div>
+                <div class="sidebar-footer">
+                    <button id="btn-graph" class="sidebar-btn" onclick="openGraphWindow()">
+                        <i class="fas fa-diagram-project"></i>
+                        <span>Student–Class Graph</span>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Right Panel -->
+            <main id="panel2">
+                <div class="panel2-empty" id="panel2-empty">
+                    <div class="panel2-empty-icon">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <h3>No Windows Open</h3>
+                    <p>Double-click on any node in the tree to open its details. You can open multiple windows at once.
+                    </p>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Toast for invalid drop -->
+    <div class="drop-invalid-toast" id="drop-toast">
+        <i class="fas fa-exclamation-triangle"></i>&nbsp; Students can only be moved into Class nodes
+    </div>
+
+    <!-- CDN Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.16/jstree.min.js"></script>
+    <script src="https://unpkg.com/winbox@0.2.82/dist/winbox.bundle.min.js"></script>
+    <script src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
+
+    <script>
+        // ===================================================================
+        // SAMPLE DATA
+        // ===================================================================
+        const sampleData = {
+            universities: [
+                {
+                    id: "univ-1",
+                    name: "National University of Technology",
+                    vc: "Dr. Rajesh Kumar",
+                    registrar: "Prof. Meena Sharma",
+                    type: "Public",
+                    colleges: [
+                        {
+                            id: "col-1",
+                            name: "College of Engineering",
+                            departments: [
+                                {
+                                    id: "dept-1",
+                                    name: "Computer Science",
+                                    deptType: "Technical",
+                                    hod: "Dr. Anand Verma",
+                                    classes: [
+                                        {
+                                            id: "cls-1",
+                                            name: "CS-101 Data Structures",
+                                            mainSub: "Data Structures",
+                                            numStudents: 45,
+                                            classTeacher: "Dr. Priya Nair",
+                                            timetable: [
+                                                { day: "Monday", h1: "DSA", h2: "DBMS", h3: "OS", h4: "Math", h5: "Lab", h6: "Lab" },
+                                                { day: "Tuesday", h1: "Math", h2: "DSA", h3: "DBMS", h4: "OS", h5: "English", h6: "Free" },
+                                                { day: "Wednesday", h1: "OS", h2: "Math", h3: "DSA", h4: "Lab", h5: "Lab", h6: "Lab" }
+                                            ],
+                                            students: [
+                                                { id: "stu-1", name: "Aarav Patel", mainSub: "Data Structures", age: 20, gender: "Male", guide: "Dr. Priya Nair" },
+                                                { id: "stu-2", name: "Isha Singh", mainSub: "Algorithms", age: 21, gender: "Female", guide: "Dr. Anand Verma" },
+                                                { id: "stu-3", name: "Rohan Mehta", mainSub: "Data Structures", age: 20, gender: "Male", guide: "Dr. Priya Nair" }
+                                            ]
+                                        },
+                                        {
+                                            id: "cls-2",
+                                            name: "CS-201 Algorithms",
+                                            mainSub: "Algorithms",
+                                            numStudents: 38,
+                                            classTeacher: "Prof. Sunil Das",
+                                            timetable: [
+                                                { day: "Monday", h1: "Algo", h2: "Networks", h3: "AI", h4: "Math II", h5: "Lab", h6: "Lab" },
+                                                { day: "Tuesday", h1: "Math II", h2: "Algo", h3: "Networks", h4: "AI", h5: "Seminar", h6: "Free" }
+                                            ],
+                                            students: [
+                                                { id: "stu-4", name: "Sneha Rao", mainSub: "Algorithms", age: 21, gender: "Female", guide: "Prof. Sunil Das" },
+                                                { id: "stu-5", name: "Vikram Joshi", mainSub: "Machine Learning", age: 22, gender: "Male", guide: "Dr. Anand Verma" }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    id: "dept-2",
+                                    name: "Electronics & Communication",
+                                    deptType: "Technical",
+                                    hod: "Dr. Kavitha Reddy",
+                                    classes: [
+                                        {
+                                            id: "cls-3",
+                                            name: "EC-101 Circuit Theory",
+                                            mainSub: "Circuit Theory",
+                                            numStudents: 40,
+                                            classTeacher: "Dr. Anil Kumar",
+                                            timetable: [
+                                                { day: "Monday", h1: "Circuits", h2: "Signals", h3: "Math", h4: "Physics", h5: "Lab", h6: "Lab" }
+                                            ],
+                                            students: [
+                                                { id: "stu-6", name: "Deepa Nair", mainSub: "Circuit Theory", age: 19, gender: "Female", guide: "Dr. Anil Kumar" },
+                                                { id: "stu-7", name: "Arjun Menon", mainSub: "Signal Processing", age: 20, gender: "Male", guide: "Dr. Kavitha Reddy" }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            id: "col-2",
+                            name: "College of Sciences",
+                            departments: [
+                                {
+                                    id: "dept-3",
+                                    name: "Mathematics",
+                                    deptType: "Pure Science",
+                                    hod: "Prof. Lakshmi Iyer",
+                                    classes: [
+                                        {
+                                            id: "cls-4",
+                                            name: "MATH-101 Calculus",
+                                            mainSub: "Calculus",
+                                            numStudents: 50,
+                                            classTeacher: "Prof. Lakshmi Iyer",
+                                            timetable: [
+                                                { day: "Monday", h1: "Calc", h2: "Algebra", h3: "Stats", h4: "Logic", h5: "Tutorial", h6: "Free" },
+                                                { day: "Tuesday", h1: "Stats", h2: "Calc", h3: "Algebra", h4: "Tutorial", h5: "Logic", h6: "Free" }
+                                            ],
+                                            students: [
+                                                { id: "stu-8", name: "Kavya Sharma", mainSub: "Calculus", age: 19, gender: "Female", guide: "Prof. Lakshmi Iyer" },
+                                                { id: "stu-9", name: "Nikhil Gupta", mainSub: "Statistics", age: 20, gender: "Male", guide: "Prof. Lakshmi Iyer" }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // ===================================================================
+        // BUILD JSTREE DATA
+        // ===================================================================
+        function buildTreeData() {
+            const nodes = [];
+            sampleData.universities.forEach(univ => {
+                const univNode = {
+                    id: univ.id,
+                    text: univ.name,
+                    type: "university",
+                    icon: "fas fa-building-columns icon-university",
+                    data: { ...univ, nodeType: "university" },
+                    state: { opened: true },
+                    children: []
+                };
+
+                (univ.colleges || []).forEach(col => {
+                    const colNode = {
+                        id: col.id,
+                        text: col.name,
+                        type: "college",
+                        icon: "fas fa-university icon-college",
+                        data: { ...col, nodeType: "college" },
+                        state: { opened: true },
+                        children: []
+                    };
+
+                    (col.departments || []).forEach(dept => {
+                        const deptNode = {
+                            id: dept.id,
+                            text: dept.name,
+                            type: "department",
+                            icon: "fas fa-sitemap icon-department",
+                            data: { ...dept, nodeType: "department" },
+                            state: { opened: true },
+                            children: []
+                        };
+
+                        (dept.classes || []).forEach(cls => {
+                            const clsNode = {
+                                id: cls.id,
+                                text: cls.name,
+                                type: "class",
+                                icon: "fas fa-chalkboard icon-class",
+                                data: { ...cls, nodeType: "class" },
+                                state: { opened: false },
+                                children: []
+                            };
+
+                            (cls.students || []).forEach(stu => {
+                                clsNode.children.push({
+                                    id: stu.id,
+                                    text: stu.name,
+                                    type: "student",
+                                    icon: "fas fa-user-graduate icon-student",
+                                    data: { ...stu, nodeType: "student" }
+                                });
+                            });
+                            deptNode.children.push(clsNode);
+                        });
+                        colNode.children.push(deptNode);
+                    });
+                    univNode.children.push(colNode);
+                });
+                nodes.push(univNode);
+            });
+            return nodes;
+        }
+
+        // ===================================================================
+        // CLIPBOARD FOR CUT/COPY/PASTE
+        // ===================================================================
+        let clipboard = { node: null, mode: null }; // mode: 'cut' | 'copy'
+
+        // ===================================================================
+        // INIT JSTREE
+        // ===================================================================
+        $(function () {
+            const treeData = buildTreeData();
+
+            $('#jstree').jstree({
+                core: {
+                    data: treeData,
+                    check_callback: function (operation, node, parent, position, more) {
+                        // Only allow moving student nodes
+                        if (operation === 'move_node') {
+                            if (node.type !== 'student') return false;
+                            if (!parent || parent.type !== 'class') return false;
+                            return true;
+                        }
+                        if (operation === 'copy_node') {
+                            if (node.type !== 'student') return false;
+                            if (!parent || parent.type !== 'class') return false;
+                            return true;
+                        }
+                        return true;
+                    },
+                    themes: {
+                        name: 'default',
+                        dots: true,
+                        icons: true,
+                        responsive: false
+                    }
+                },
+                types: {
+                    university: { icon: "fas fa-building-columns icon-university" },
+                    college: { icon: "fas fa-university icon-college" },
+                    department: { icon: "fas fa-sitemap icon-department" },
+                    "class": { icon: "fas fa-chalkboard icon-class" },
+                    student: { icon: "fas fa-user-graduate icon-student" }
+                },
+                plugins: ["dnd", "contextmenu", "types", "search", "wholerow"],
+                dnd: {
+                    is_draggable: function (nodes) {
+                        return nodes.every(n => n.type === 'student');
+                    },
+                    check_while_dragging: true,
+                    copy: false
+                },
+                contextmenu: {
+                    select_node: true,
+                    items: function (node) {
+                        const tree = $('#jstree').jstree(true);
+                        if (node.type !== 'student') {
+                            return {}; // no context menu for non-students
+                        }
+                        return {
+                            cut: {
+                                label: '<i class="fas fa-scissors"></i>&nbsp; Cut',
+                                action: function () {
+                                    clipboard = { node: node, mode: 'cut' };
+                                },
+                                _class: 'context-cut'
+                            },
+                            copy: {
+                                label: '<i class="fas fa-copy"></i>&nbsp; Copy',
+                                action: function () {
+                                    clipboard = { node: node, mode: 'copy' };
+                                },
+                                _class: 'context-copy'
+                            },
+                            paste: {
+                                separator_before: true,
+                                label: '<i class="fas fa-paste"></i>&nbsp; Paste',
+                                _disabled: !clipboard.node,
+                                action: function () {
+                                    if (!clipboard.node) return;
+                                    const targetParent = tree.get_node(node.parent);
+                                    if (targetParent.type !== 'class') {
+                                        showToast();
+                                        return;
+                                    }
+                                    if (clipboard.mode === 'cut') {
+                                        tree.move_node(clipboard.node, targetParent, 'last');
+                                        clipboard = { node: null, mode: null };
+                                    } else if (clipboard.mode === 'copy') {
+                                        tree.copy_node(clipboard.node, targetParent, 'last');
+                                    }
+                                },
+                                _class: 'context-paste'
+                            }
+                        };
+                    }
+                },
+                search: {
+                    show_only_matches: true,
+                    show_only_matches_children: true
+                }
+            });
+
+            // ===== Search =====
+            let searchTimeout = null;
+            $('#tree-search').on('input', function () {
+                clearTimeout(searchTimeout);
+                const q = $(this).val();
+                searchTimeout = setTimeout(function () {
+                    $('#jstree').jstree(true).search(q);
+                }, 300);
+            });
+
+            // ===== DND: Show toast on invalid drop =====
+            $(document).on('dnd_stop.vakata', function (e, data) {
+                // Toast is handled by check_callback returning false
+            });
+
+            // Also show a toast via the move_node.jstree rejection
+            $('#jstree').on('move_node.jstree', function (e, data) {
+                // Successfully moved - update empty state
+                updateEmptyState();
+            });
+
+            // ===== Double-click: Open WinBox =====
+            $('#jstree').on('dblclick.jstree', function (e) {
+                const tree = $('#jstree').jstree(true);
+                const nodeId = $(e.target).closest('.jstree-node').attr('id');
+                if (!nodeId) return;
+                const node = tree.get_node(nodeId);
+                if (!node) return;
+                openFormWindow(node);
+            });
+        });
+
+        // ===================================================================
+        // TOAST NOTIFICATION
+        // ===================================================================
+        function showToast() {
+            const t = document.getElementById('drop-toast');
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        // ===================================================================
+        // TRACK OPEN WINDOWS
+        // ===================================================================
+        let openWindowCount = 0;
+
+        function updateEmptyState() {
+            const el = document.getElementById('panel2-empty');
+            if (el) {
+                el.style.display = openWindowCount > 0 ? 'none' : 'flex';
+            }
+        }
+
+        // ===================================================================
+        // OPEN WINBOX FORM WINDOW
+        // ===================================================================
+        function openFormWindow(node) {
+            const nodeType = node.data ? node.data.nodeType : node.type;
+            const nodeData = node.data || {};
+            const panel2 = document.getElementById('panel2');
+            const panelRect = panel2.getBoundingClientRect();
+
+            // Configuration by type
+            const configs = {
+                university: { title: 'University', icon: 'fas fa-building-columns', width: 620, height: 480 },
+                college: { title: 'College', icon: 'fas fa-university', width: 450, height: 300 },
+                department: { title: 'Department', icon: 'fas fa-sitemap', width: 420, height: 320 },
+                "class": { title: 'Class', icon: 'fas fa-chalkboard', width: 600, height: 500 },
+                student: { title: 'Student', icon: 'fas fa-user-graduate', width: 480, height: 380 }
+            };
+
+            const cfg = configs[nodeType] || configs.student;
+
+            // Generate offset so windows don't stack exactly
+            const offset = (openWindowCount % 6) * 28;
+
+            const wb = new WinBox({
+                title: node.text,
+                html: generateFormHTML(nodeType, nodeData),
+                width: cfg.width,
+                height: cfg.height,
+                x: panelRect.left + 30 + offset,
+                y: panelRect.top + 30 + offset,
+                top: panelRect.top,
+                right: window.innerWidth - panelRect.right,
+                bottom: window.innerHeight - panelRect.bottom,
+                left: panelRect.left,
+                class: ['no-full'],
+                border: 0,
+                background: 'transparent',
+                oncreate: function () {
+                    // Inject icon into the title bar after WinBox renders
+                    const titleEl = this.dom.querySelector('.wb-title');
+                    if (titleEl) {
+                        const icon = document.createElement('i');
+                        icon.className = cfg.icon;
+                        icon.style.marginRight = '8px';
+                        titleEl.prepend(icon);
+                    }
+                },
+                onclose: function () {
+                    openWindowCount--;
+                    updateEmptyState();
+                }
+            });
+
+            openWindowCount++;
+            updateEmptyState();
+        }
+
+        // ===================================================================
+        // GENERATE FORM HTML BY NODE TYPE
+        // ===================================================================
+        function generateFormHTML(type, data) {
+            switch (type) {
+                case 'university': return universityForm(data);
+                case 'college': return collegeForm(data);
+                case 'department': return departmentForm(data);
+                case 'class': return classForm(data);
+                case 'student': return studentForm(data);
+                default: return `<div class="form-container"><p>Unknown node type</p></div>`;
+            }
+        }
+
+        function universityForm(d) {
+            // Build overview grid rows from colleges
+            let gridRows = '';
+            if (d.colleges) {
+                d.colleges.forEach(col => {
+                    const deptCount = (col.departments || []).length;
+                    const studentCount = (col.departments || []).reduce((sum, dept) => {
+                        return sum + (dept.classes || []).reduce((s, cls) => s + (cls.students || []).length, 0);
+                    }, 0);
+                    gridRows += `<tr>
+                <td>${col.name}</td>
+                <td>${deptCount}</td>
+                <td>${studentCount}</td>
+                <td><span class="badge badge-green">Active</span></td>
+            </tr>`;
+                });
+            }
+
+            return `<div class="form-container">
+        <div class="form-title"><i class="fas fa-building-columns"></i> University Details</div>
+        <div class="form-columns">
+            <div class="form-col">
+                <div class="form-row"><label>ID</label><input type="text" value="${d.id || ''}" readonly></div>
+                <div class="form-row"><label>Name</label><input type="text" value="${d.name || ''}"></div>
+                <div class="form-row"><label>Vice Chancellor</label><input type="text" value="${d.vc || ''}"></div>
+                <div class="form-row"><label>Registrar</label><input type="text" value="${d.registrar || ''}"></div>
+                <div class="form-row"><label>Type</label>
+                    <select>
+                        <option ${d.type === 'Public' ? 'selected' : ''}>Public</option>
+                        <option ${d.type === 'Private' ? 'selected' : ''}>Private</option>
+                        <option ${d.type === 'Deemed' ? 'selected' : ''}>Deemed</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-col">
+                <div class="form-section-title">Colleges Overview</div>
+                <div class="data-grid-wrapper">
+                    <table class="data-grid">
+                        <thead><tr><th>College</th><th>Depts</th><th>Students</th><th>Status</th></tr></thead>
+                        <tbody>${gridRows || '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No data</td></tr>'}</tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>`;
+        }
+
+        function collegeForm(d) {
+            const deptCount = (d.departments || []).length;
+            let deptList = '';
+            if (d.departments) {
+                d.departments.forEach(dept => {
+                    const classCount = (dept.classes || []).length;
+                    deptList += `<tr><td>${dept.name}</td><td>${dept.deptType || '-'}</td><td>${dept.hod || '-'}</td><td>${classCount}</td></tr>`;
+                });
+            }
+
+            return `<div class="form-container">
+        <div class="form-title"><i class="fas fa-university"></i> College Details</div>
+        <div class="form-row"><label>ID</label><input type="text" value="${d.id || ''}" readonly></div>
+        <div class="form-row"><label>Name</label><input type="text" value="${d.name || ''}"></div>
+        <div class="form-row"><label>Total Departments</label><input type="text" value="${deptCount}" readonly></div>
+        <div class="form-section-title">Departments</div>
+        <div class="data-grid-wrapper">
+            <table class="data-grid">
+                <thead><tr><th>Department</th><th>Type</th><th>HOD</th><th>Classes</th></tr></thead>
+                <tbody>${deptList || '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No data</td></tr>'}</tbody>
+            </table>
+        </div>
+    </div>`;
+        }
+
+        function departmentForm(d) {
+            return `<div class="form-container">
+        <div class="form-title"><i class="fas fa-sitemap"></i> Department Details</div>
+        <div class="form-row"><label>ID</label><input type="text" value="${d.id || ''}" readonly></div>
+        <div class="form-row"><label>Name</label><input type="text" value="${d.name || ''}"></div>
+        <div class="form-row"><label>Dept Type</label>
+            <select>
+                <option ${d.deptType === 'Technical' ? 'selected' : ''}>Technical</option>
+                <option ${d.deptType === 'Pure Science' ? 'selected' : ''}>Pure Science</option>
+                <option ${d.deptType === 'Applied Science' ? 'selected' : ''}>Applied Science</option>
+                <option ${d.deptType === 'Humanities' ? 'selected' : ''}>Humanities</option>
+            </select>
+        </div>
+        <div class="form-row"><label>HOD</label><input type="text" value="${d.hod || ''}"></div>
+    </div>`;
+        }
+
+        function classForm(d) {
+            // Timetable
+            let ttRows = '';
+            if (d.timetable) {
+                d.timetable.forEach(row => {
+                    ttRows += `<tr>
+                <td style="font-weight:600">${row.day}</td>
+                <td>${row.h1 || ''}</td><td>${row.h2 || ''}</td><td>${row.h3 || ''}</td>
+                <td>${row.h4 || ''}</td><td>${row.h5 || ''}</td><td>${row.h6 || ''}</td>
+            </tr>`;
+                });
+            }
+
+            return `<div class="form-container">
+        <div class="form-title"><i class="fas fa-chalkboard"></i> Class Details</div>
+        <div class="form-row"><label>ID</label><input type="text" value="${d.id || ''}" readonly></div>
+        <div class="form-row"><label>Name</label><input type="text" value="${d.name || ''}"></div>
+        <div class="form-row"><label>Main Subject</label><input type="text" value="${d.mainSub || ''}"></div>
+        <div class="form-row"><label>No. of Students</label><input type="text" value="${d.numStudents || 0}"></div>
+        <div class="form-row"><label>Class Teacher</label>
+            <select>
+                <option selected>${d.classTeacher || ''}</option>
+                <option>Dr. Priya Nair</option>
+                <option>Prof. Sunil Das</option>
+                <option>Dr. Anil Kumar</option>
+                <option>Prof. Lakshmi Iyer</option>
+            </select>
+        </div>
+        <div class="form-section-title">Time Table</div>
+        <div class="data-grid-wrapper">
+            <table class="data-grid">
+                <thead><tr><th>Day</th><th>Hour 1</th><th>Hour 2</th><th>Hour 3</th><th>Hour 4</th><th>Hour 5</th><th>Hour 6</th></tr></thead>
+                <tbody>${ttRows || '<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">No timetable data</td></tr>'}</tbody>
+            </table>
+        </div>
+    </div>`;
+        }
+
+        function studentForm(d) {
+            return `<div class="form-container">
+        <div class="form-title"><i class="fas fa-user-graduate"></i> Student Details</div>
+        <div class="form-columns">
+            <div class="form-col">
+                <div class="form-row"><label>ID</label><input type="text" value="${d.id || ''}" readonly></div>
+                <div class="form-row"><label>Name</label><input type="text" value="${d.name || ''}"></div>
+                <div class="form-row"><label>Main Subject</label><input type="text" value="${d.mainSub || ''}"></div>
+            </div>
+            <div class="form-col">
+                <div class="form-row"><label>Age</label><input type="number" value="${d.age || ''}"></div>
+                <div class="form-row"><label>Gender</label>
+                    <select>
+                        <option value="">Select...</option>
+                        <option ${d.gender === 'Male' ? 'selected' : ''}>Male</option>
+                        <option ${d.gender === 'Female' ? 'selected' : ''}>Female</option>
+                        <option ${d.gender === 'Other' ? 'selected' : ''}>Other</option>
+                    </select>
+                </div>
+                <div class="form-row"><label>Guide</label><input type="text" value="${d.guide || ''}"></div>
+            </div>
+        </div>
+    </div>`;
+        }
+
+        // ===================================================================
+        // STUDENT-CLASS GRAPH VISUALIZATION
+        // ===================================================================
+        function openGraphWindow() {
+            const panel2 = document.getElementById('panel2');
+            const panelRect = panel2.getBoundingClientRect();
+            const graphId = 'graph-' + Date.now();
+
+            const wb = new WinBox({
+                title: 'Student ↔ Class Relationships',
+                html: '<div id="' + graphId + '" style="width:100%;height:100%;"></div>',
+                width: Math.min(800, panelRect.width - 40),
+                height: Math.min(550, panelRect.height - 40),
+                x: panelRect.left + 20,
+                y: panelRect.top + 20,
+                top: panelRect.top,
+                right: window.innerWidth - panelRect.right,
+                bottom: window.innerHeight - panelRect.bottom,
+                left: panelRect.left,
+                class: ['no-full'],
+                border: 0,
+                background: 'transparent',
+                oncreate: function () {
+                    const titleEl = this.dom.querySelector('.wb-title');
+                    if (titleEl) {
+                        const icon = document.createElement('i');
+                        icon.className = 'fas fa-diagram-project';
+                        icon.style.marginRight = '8px';
+                        titleEl.prepend(icon);
+                    }
+                },
+                onclose: function () {
+                    openWindowCount--;
+                    updateEmptyState();
+                }
+            });
+
+            openWindowCount++;
+            updateEmptyState();
+
+            // Build graph data after a tick so the container is mounted
+            setTimeout(function () {
+                buildGraph(graphId);
+            }, 100);
+        }
+
+        function buildGraph(containerId) {
+            const nodes = [];
+            const edges = [];
+            const nodeIds = new Set();
+
+            sampleData.universities.forEach(function (univ) {
+                (univ.colleges || []).forEach(function (col) {
+                    (col.departments || []).forEach(function (dept) {
+                        (dept.classes || []).forEach(function (cls) {
+                            // Add class node
+                            if (!nodeIds.has(cls.id)) {
+                                nodes.push({
+                                    id: cls.id,
+                                    label: cls.name,
+                                    shape: 'box',
+                                    color: {
+                                        background: '#d1fae5',
+                                        border: '#10b981',
+                                        highlight: { background: '#a7f3d0', border: '#059669' },
+                                        hover: { background: '#a7f3d0', border: '#059669' }
+                                    },
+                                    font: { face: 'Inter, sans-serif', size: 13, color: '#065f46', bold: { color: '#065f46' } },
+                                    borderWidth: 2,
+                                    margin: 10,
+                                    shadow: { enabled: true, size: 4, color: 'rgba(16,185,129,0.15)' }
+                                });
+                                nodeIds.add(cls.id);
+                            }
+
+                            (cls.students || []).forEach(function (stu) {
+                                // Add student node (only once even if in multiple classes)
+                                if (!nodeIds.has(stu.id)) {
+                                    nodes.push({
+                                        id: stu.id,
+                                        label: stu.name,
+                                        shape: 'ellipse',
+                                        color: {
+                                            background: '#fef3c7',
+                                            border: '#f59e0b',
+                                            highlight: { background: '#fde68a', border: '#d97706' },
+                                            hover: { background: '#fde68a', border: '#d97706' }
+                                        },
+                                        font: { face: 'Inter, sans-serif', size: 12, color: '#92400e' },
+                                        borderWidth: 2,
+                                        shadow: { enabled: true, size: 4, color: 'rgba(245,158,11,0.15)' }
+                                    });
+                                    nodeIds.add(stu.id);
+                                }
+
+                                // Add edge
+                                edges.push({
+                                    from: stu.id,
+                                    to: cls.id,
+                                    color: { color: '#c4b5fd', highlight: '#8b5cf6', hover: '#8b5cf6' },
+                                    width: 2,
+                                    smooth: { type: 'continuous' }
+                                });
+                            });
+                        });
+                    });
+                });
+            });
+
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const data = { nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges) };
+            const options = {
+                physics: {
+                    solver: 'forceAtlas2Based',
+                    forceAtlas2Based: {
+                        gravitationalConstant: -40,
+                        centralGravity: 0.005,
+                        springLength: 140,
+                        springConstant: 0.06,
+                        damping: 0.4
+                    },
+                    stabilization: { iterations: 150 }
+                },
+                interaction: {
+                    hover: true,
+                    tooltipDelay: 200,
+                    zoomView: true,
+                    dragView: true
+                },
+                layout: {
+                    improvedLayout: true
+                }
+            };
+
+            new vis.Network(container, data, options);
+        }
+    </script>
+
+</body>
+
+</html>
